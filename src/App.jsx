@@ -12,6 +12,7 @@ function App() {
     setImages(prev => [...prev, ...newImages]);
   }
 
+
   return (
     <div className="app-container">
       <Header />
