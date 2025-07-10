@@ -1,35 +1,65 @@
 import { useState } from "react";
-import { nanoid } from "nanoid";   
+import { nanoid } from "nanoid";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { storage, db } from "../firebase";
 import GifModal from "../components/GifModal";
 
-function Sidebar({ onImageUpload }) {
+function Sidebar({ onImageUpload, user }) {
   const [showGifModal, setShowGifModal] = useState(false);
 
+  async function handleFileChange(e) {
+    if (!user) {
+      alert("Please wait for authentication.");
+      return;
+    }
 
-  function handleFileChange(e) {
     const files = Array.from(e.target.files);
 
-    Promise.all(
-      files.map(file =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve({
-            id: nanoid(),
-            src: reader.result,
-            x: 0,
-            y: 0,
-          });
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        })
-      )
-    ).then(newImages => {
-      onImageUpload(newImages); 
-    });
+    const uploadedImages = await Promise.all(
+      files.map(async (file) => {
+        const id = nanoid();
+        const storageRef = ref(storage, `users/${user.uid}/images/${id}`);
+
+
+        await uploadBytes(storageRef, file);
+
+        const url = await getDownloadURL(storageRef);
+
+        const docRef = doc(db, "users", user.uid, "images", id);
+        await setDoc(docRef, {
+          id,
+          src: url,
+          x: 0,
+          y: 0,
+          createdAt: serverTimestamp(),
+        });
+
+        return { id, src: url, x: 0, y: 0 };
+      })
+    );
+
+    onImageUpload(uploadedImages);
   }
 
-  function handleGifSelect(gifObject) {
-    onImageUpload([gifObject]);
+  async function handleGifSelect(gifObject) {
+    if (!user) {
+      alert("Please wait for authentication.");
+      return;
+    }
+
+    const id = nanoid();
+
+    const docRef = doc(db, "users", user.uid, "images", id);
+    await setDoc(docRef, {
+      id,
+      src: gifObject.src,
+      x: 0,
+      y: 0,
+      createdAt: serverTimestamp(),
+    });
+
+    onImageUpload([{ id, src: gifObject.src, x: 0, y: 0 }]);
   }
 
   return (
