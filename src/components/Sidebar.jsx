@@ -1,30 +1,35 @@
-import { useState } from 'react';
-import GifSearch from "../components/GifSearch";
+import { useState } from "react";
+import { nanoid } from "nanoid";   
 import GifModal from "../components/GifModal";
 
 function Sidebar({ onImageUpload }) {
   const [showGifModal, setShowGifModal] = useState(false);
 
+
   function handleFileChange(e) {
-  const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files);
 
-  Promise.all(
-    files.map(file => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file); 
-      });
-    })
-  ).then(imageBase64Array => {
-    onImageUpload(imageBase64Array);
-  });
-}
+    Promise.all(
+      files.map(file =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve({
+            id: nanoid(),
+            src: reader.result,
+            x: 0,
+            y: 0,
+          });
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        })
+      )
+    ).then(newImages => {
+      onImageUpload(newImages); 
+    });
+  }
 
-
-  function handleGifSelect(gifUrl) {
-    onImageUpload([gifUrl]); 
+  function handleGifSelect(gifObject) {
+    onImageUpload([gifObject]);
   }
 
   return (
@@ -37,7 +42,10 @@ function Sidebar({ onImageUpload }) {
         onChange={handleFileChange}
       />
 
-       <button onClick={() => setShowGifModal(true)} className="gif-search-btn">
+      <button
+        onClick={() => setShowGifModal(true)}
+        className="gif-search-btn"
+      >
         Search GIFs
       </button>
 

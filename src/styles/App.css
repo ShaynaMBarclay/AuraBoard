@@ -1,5 +1,6 @@
 @import "./Board.css";
 @import "./GifModal.css";
+@import "./Trashcan.css";
 
 .app-container {
   font-family: sans-serif;

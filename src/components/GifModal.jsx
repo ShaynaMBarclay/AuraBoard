@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { nanoid } from 'nanoid';
 
 const API_KEY = import.meta.env.VITE_GIPHY_API_KEY;
 
@@ -14,7 +15,7 @@ function GifModal({ onGifSelect, onClose }) {
     if (!searchTerm.trim()) return;
 
     setIsLoading(true);
-    setOffset(0); 
+    setOffset(0);
 
     try {
       const url = `https://api.giphy.com/v1/gifs/search?api_key=${API_KEY}&q=${encodeURIComponent(
@@ -50,7 +51,12 @@ function GifModal({ onGifSelect, onClose }) {
   }
 
   function handleGifClick(gifUrl) {
-    onGifSelect(gifUrl);
+    onGifSelect({
+      id: nanoid(),    // unique id for each gif added
+      src: gifUrl,     // gif image url
+      x: 0,            // initial x position on board
+      y: 0,            // initial y position on board
+    });
     onClose();
   }
 
