@@ -2,22 +2,27 @@ import "./styles/App.css";
 import Header from "./components/Header";
 import Sidebar from "./components/Sidebar";
 import Board from "./components/Board";
-import { useState } from 'react';
-
+import { useState, useEffect } from "react";
 
 function App() {
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(() => {
+    const saved = localStorage.getItem("moodboard_images");
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("moodboard_images", JSON.stringify(images));
+  }, [images]);
 
   function handleImageUpload(newImages) {
-    setImages(prev => [...prev, ...newImages]);
+    setImages((prev) => [...prev, ...newImages]);
   }
-
 
   return (
     <div className="app-container">
       <Header />
       <div className="main-content">
-        <Sidebar onImageUpload={handleImageUpload}/>
+        <Sidebar onImageUpload={handleImageUpload} />
         <Board images={images} />
       </div>
     </div>

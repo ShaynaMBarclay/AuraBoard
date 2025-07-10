@@ -6,10 +6,22 @@ function Sidebar({ onImageUpload }) {
   const [showGifModal, setShowGifModal] = useState(false);
 
   function handleFileChange(e) {
-    const files = Array.from(e.target.files);
-    const imageURLs = files.map(file => URL.createObjectURL(file));
-    onImageUpload(imageURLs);
-  }
+  const files = Array.from(e.target.files);
+
+  Promise.all(
+    files.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file); 
+      });
+    })
+  ).then(imageBase64Array => {
+    onImageUpload(imageBase64Array);
+  });
+}
+
 
   function handleGifSelect(gifUrl) {
     onImageUpload([gifUrl]); 
